@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - Product Details</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>{{ product.name }}</h2>
+    <div class="nav-links">
+        <a href="/" class="btn-small">🏠 Home</a>
+        {% if session.user_id and session.role == 'customer' %}
+            <a href="/cart" class="btn-small">🛒 Cart</a>
+        {% endif %}
+        {% if session.user_id %}
+            <a href="/logout" class="btn-small logout">Logout</a>
+        {% else %}
+            <a href="/login" class="btn-small">Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <div class="product-detail-card">
+        <div class="detail-hero">
+            <img src="{{ product.image or 'https://via.placeholder.com/600x400.png?text=Vegetable' }}" alt="{{ product.name }}">
+            <div class="detail-info">
+                <h1>{{ product.name }}</h1>
+                <p class="category">📂 {{ product.category or 'Vegetables' }}</p>
+                <p class="price">₹{{ "%.2f"|format(product.price) }}/{{ product.unit or 'kg' }}</p>
+                <p class="stock">📦 Stock: {{ "%.1f"|format(product.quantity) }} {{ product.unit or 'kg' }}</p>
+                <p class="description">{{ product.description or 'No description available yet.' }}</p>
+                <p class="farmer">👨‍🌾 Farmer: {{ product.farmer_name or 'Local Farmer' }}</p>
+                {% if product.farmer_phone %}
+                    <p class="farmer">📞 Phone: {{ product.farmer_phone }}</p>
+                {% endif %}
+                {% if product.farmer_address %}
+                    <p class="farmer">📍 Address: {{ product.farmer_address }}</p>
+                {% endif %}
+                <div class="button-group">
+                    <a href="/" class="btn-small">Back to Shop</a>
+                    {% if session.user_id and session.role == 'customer' %}
+                        <form method="POST" action="/add_to_cart/{{ product._id }}" class="add-cart-form detail-add-cart">
+                            <input type="number" name="quantity" value="1" min="0.5" step="0.5" max="{{ product.quantity }}" required>
+                            <button type="submit" class="btn-cart">🛒 Add to Cart</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

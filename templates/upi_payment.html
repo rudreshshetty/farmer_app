@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI Payment</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .upi-container {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .upi-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upi-header h1 {
+            font-size: 28px;
+            margin: 0;
+            color: white;
+        }
+
+        .upi-amount {
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .qr-code-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .qr-code-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .qr-label {
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .upi-details {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffd700;
+        }
+
+        .upi-details p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .upi-details strong {
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .timer-box {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid #ffd700;
+        }
+
+        .timer-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .timer-display {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+            font-family: monospace;
+            color: #ffd700;
+        }
+
+        .timer-warning {
+            font-size: 12px;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn-pay {
+            flex: 1;
+            background: #ffd700;
+            color: #667eea;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-pay:hover:not(:disabled) {
+            background: #ffed4e;
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+        }
+
+        .btn-pay:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .instructions {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+        }
+
+        .expired-message {
+            background: #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .success-message {
+            background: #51cf66;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .upi-container {
+                margin: 15px;
+                padding: 20px;
+            }
+
+            .upi-amount {
+                font-size: 36px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .timer-display {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>💳 UPI Payment</h2>
+</div>
+
+<div class="upi-container">
+    <div class="upi-header">
+        <h1>Scan to Pay</h1>
+        <p>Using UPI Payment Methods</p>
+    </div>
+
+    <div class="upi-amount">
+        ₹{{ "%.2f"|format(order.total_price) }}
+    </div>
+
+    <!-- QR Code -->
+    <div class="qr-code-box">
+        <img src="data:image/png;base64,{{ qr_code }}" alt="UPI QR Code">
+        <div class="qr-label">📱 Scan with Google Pay, PhonePe, or any UPI app</div>
+    </div>
+
+    <!-- Countdown Timer -->
+    <div class="timer-box">
+        <div class="timer-label">⏱️ Payment Expiry Time</div>
+        <div class="timer-display" id="timer">05:00</div>
+        <div class="timer-warning">This QR code will expire in 5 minutes</div>
+    </div>
+
+    <!-- UPI Details -->
+    <div class="upi-details">
+        <p><strong>UPI ID:</strong> <code>{{ upi_id }}</code></p>
+        <p><strong>Amount:</strong> ₹{{ "%.2f"|format(amount) }}</p>
+        <p><strong>Order ID:</strong> <code>#{{ order._id[:8] }}</code></p>
+    </div>
+
+    <!-- Status Messages -->
+    <div class="expired-message" id="expiredMsg">
+        ⏰ Payment option has expired. Please try again.
+    </div>
+    <div class="success-message" id="successMsg">
+        ✅ Payment received! Processing your order...
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+        <h3>How to Pay:</h3>
+        <ol>
+            <li>Open your UPI app (Google Pay, PhonePe, Paytm, etc.)</li>
+            <li>Tap "Scan QR Code" or use the camera</li>
+            <li>Scan the code above</li>
+            <li>Enter your UPI PIN to confirm payment</li>
+            <li>Wait for confirmation</li>
+        </ol>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="button-group">
+        <button class="btn-pay" id="payBtn" onclick="processPayment()">
+            💳 Confirm Payment
+        </button>
+        <a href="/" class="btn-cancel">← Cancel</a>
+    </div>
+</div>
+
+<script>
+    // Countdown Timer (5 minutes = 300 seconds)
+    const EXPIRY_TIME = 300; // 5 minutes in seconds
+    let remainingTime = EXPIRY_TIME;
+    const timerElement = document.getElementById('timer');
+    const payBtn = document.getElementById('payBtn');
+    const expiredMsg = document.getElementById('expiredMsg');
+    const successMsg = document.getElementById('successMsg');
+
+    function updateTimer() {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        if (remainingTime <= 0) {
+            clearInterval(timerInterval);
+            timerElement.textContent = '00:00';
+            payBtn.disabled = true;
+            expiredMsg.style.display = 'block';
+            timerElement.style.color = '#ff6b6b';
+        } else if (remainingTime <= 30) {
+            // Change color to red when less than 30 seconds
+            timerElement.style.color = '#ff6b6b';
+        }
+
+        remainingTime--;
+    }
+
+    // Update timer every second
+    const timerInterval = setInterval(updateTimer, 1000);
+
+    function processPayment() {
+        if (remainingTime <= 0) {
+            alert('Payment option has expired. Please try again.');
+            window.location.href = '/';
+            return;
+        }
+
+        // Show success message
+        successMsg.style.display = 'block';
+        payBtn.disabled = true;
+        payBtn.textContent = '⏳ Processing...';
+
+        // Simulate payment processing
+        setTimeout(() => {
+            // Make request to confirm payment
+            fetch('{{ url_for("confirm_upi_payment", order_id=order._id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Redirect to order confirmation
+                    window.location.href = '{{ url_for("order_confirmation", order_id=order._id) }}';
+                } else {
+                    alert('Failed to confirm payment. Please try again.');
+                    payBtn.disabled = false;
+                    payBtn.textContent = '💳 Confirm Payment';
+                    successMsg.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                payBtn.disabled = false;
+                payBtn.textContent = '💳 Confirm Payment';
+                successMsg.style.display = 'none';
+            });
+        }, 2000); // Simulate 2 second processing time
+    }
+
+    // Also allow pressing Enter to trigger payment
+    document.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !payBtn.disabled && remainingTime > 0) {
+            processPayment();
+        }
+    });
+
+    // Clean up interval when page unloads
+    window.addEventListener('beforeunload', () => {
+        clearInterval(timerInterval);
+    });
+</script>
+
+</body>
+</html>

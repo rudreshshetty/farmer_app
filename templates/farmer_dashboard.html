@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>🌾 Farmer Dashboard</h2>
+    <div class="nav-right">
+        <a href="/" class="btn-small">🏠 Home</a>
+        <a href="/logout" class="btn-small logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <h2>Welcome, {{ user.name }}! 👋</h2>
+    
+    <div class="user-info">
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Phone:</strong> {{ user.phone }}</p>
+        <p><strong>Address:</strong> {{ user.address }}</p>
+    </div>
+    
+    <div class="section">
+        <h2>🥬 My Products</h2>
+        <a href="/add_product" class="btn">+ Add New Product</a>
+        
+        {% if products %}
+            <div class="table-responsive">
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                            <tr id="all-product-{{ product._id }}">
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.category or 'Vegetables' }}</td>
+                                <td>₹{{ "%.2f"|format(product.price) }}/{{ product.unit or 'kg' }}</td>
+                                <td>{{ "%.1f"|format(product.quantity) }} {{ product.unit or 'kg' }}</td>
+                                <td class="action-cell">
+                                    <a href="/edit_product/{{ product._id }}" class="btn-small">✏️ Edit</a>
+                                    <form method="POST" action="/delete_product/{{ product._id }}" class="inline-form">
+                                        <button type="submit" class="btn-danger small">🗑️ Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No products added yet. <a href="/add_product">Add your first product!</a></p>
+        {% endif %}
+    </div>
+    
+    <div class="section">
+        <h2>📦 Incoming Orders</h2>
+        
+        {% if total_orders %}
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_orders }}</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #f39c12;">{{ pending_orders }}</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #27ae60;">{{ accepted_orders }}</div>
+                    <div class="stat-label">Accepted</div>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if orders %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-tbody">
+                        {% for order in orders %}
+                            <tr id="order-row-{{ order._id }}" class="order-row-{{ order.status }}">
+                                <td><strong>#{{ order._id }}</strong></td>
+                                <td>{{ order.customer_name }}<br><small style="color: #666;">{{ order.customer_phone }}</small></td>
+                                <td>₹{{ "%.2f"|format(order.total_price) }}</td>
+                                <td>
+                                    {% if order.status == 'pending' %}
+                                        <span class="status-btn status-pending">⏳ Pending</span>
+                                    {% elif order.status == 'accepted' %}
+                                        <span class="status-btn status-accepted">✅ Accepted</span>
+                                    {% elif order.status == 'rejected' %}
+                                        <span class="status-btn status-rejected">❌ Rejected</span>
+                                    {% elif order.status == 'delivered' %}
+                                        <span class="status-btn status-delivered">🚚 Delivered</span>
+                                    {% else %}
+                                        <span class="status-btn">{{ order.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ order.created_at[0:10] }}</td>
+                                <td class="action-cell">
+                                    <a href="/order/{{ order._id }}" class="btn-small">👁️ View</a>
+                                    <span id="action-buttons-{{ order._id }}" class="action-buttons-container">
+                                    {% if order.status == 'pending' %}
+                                        <button type="button" class="btn-small btn-accept" onclick="updateStatus('{{ order._id }}', 'accepted')">✅ Accept</button>
+                                        <button type="button" class="btn-small btn-reject" onclick="updateStatus('{{ order._id }}', 'rejected')">❌ Reject</button>
+                                    {% endif %}
+                                    {% if order.status == 'accepted' %}
+                                        <button type="button" class="btn-small btn-deliver" onclick="updateStatus('{{ order._id }}', 'delivered')">🚚 Deliver</button>
+                                    {% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No orders yet</p>
+        {% endif %}
+    </div>
+    
+    <div class="section">
+        <h2>📋 All Available Vegetables in System</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 15px;">📊 Complete Inventory: {{ all_products|length }} vegetables available from all farmers</p>
+        
+        {% if all_products %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Vegetable Name</th>
+                            <th>Farmer</th>
+                            <th>Price/kg</th>
+                            <th>Stock Available</th>
+                            <th>Value</th>
+                            <th>Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in all_products %}
+                            <tr id="all-product-{{ product._id }}">
+                                <td><strong>{{ product.name }}</strong></td>
+                                <td>{{ product.farmer_name }}</td>
+                                <td>₹{{ "%.2f"|format(product.price) }}</td>
+                                <td>{{ "%.1f"|format(product.quantity) }} kg</td>
+                                <td>₹{{ "%.2f"|format(product.quantity * product.price) }}</td>
+                                <td>{{ product.category or 'Vegetables' }}</td>
+                                <td class="action-cell">
+                                    <a href="/edit_product/{{ product._id }}" class="btn-small" title="Edit vegetable details">✏️ Edit</a>
+                                    {% if product.is_owner %}
+                                        <form method="POST" action="/delete_product/{{ product._id }}" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                            <button type="submit" class="btn-danger small" title="Delete vegetable">🗑️ Delete</button>
+                                        </form>
+                                        <button type="button" class="btn-small" title="Delete via AJAX" onclick="ajaxDeleteProduct('{{ product._id }}')">🗑️ Delete</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No vegetables available</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function updateStatus(orderId, status) {
+    const formData = new FormData();
+    formData.append('status', status);
+    
+    fetch(`/update_order_status/${orderId}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const orderRow = document.getElementById(`order-row-${orderId}`);
+            if (orderRow) {
+                // Update status display
+                updateStatusDisplay(orderRow, status);
+                // Update action buttons
+                updateActionButtons(orderId, status);
+                // Update row class for styling
+                orderRow.className = `order-row-${status}`;
+                showNotification('✅ Order status updated!', 'success');
+            }
+        } else {
+            showNotification('❌ Error updating order', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('❌ Error updating order', 'error');
+    });
+}
+
+function updateStatusDisplay(orderRow, status) {
+    const statusTd = orderRow.querySelector('td:nth-child(4)');
+    if (!statusTd) return;
+    
+    let statusHtml = '';
+    if (status === 'pending') {
+        statusHtml = '<span class="status-btn status-pending">⏳ Pending</span>';
+    } else if (status === 'accepted') {
+        statusHtml = '<span class="status-btn status-accepted">✅ Accepted</span>';
+    } else if (status === 'rejected') {
+        statusHtml = '<span class="status-btn status-rejected">❌ Rejected</span>';
+    } else if (status === 'delivered') {
+        statusHtml = '<span class="status-btn status-delivered">🚚 Delivered</span>';
+    } else {
+        statusHtml = `<span class="status-btn">${status}</span>`;
+    }
+    
+    statusTd.innerHTML = statusHtml;
+}
+
+function updateActionButtons(orderId, status) {
+    const buttonsContainer = document.getElementById(`action-buttons-${orderId}`);
+    if (!buttonsContainer) return;
+    
+    let html = '';
+    
+    if (status === 'pending') {
+        html = '<button type="button" class="btn-small btn-accept" onclick="updateStatus(\'' + orderId + '\', \'accepted\')">✅ Accept</button>';
+        html += '<button type="button" class="btn-small btn-reject" onclick="updateStatus(\'' + orderId + '\', \'rejected\')">❌ Reject</button>';
+    } else if (status === 'accepted') {
+        html = '<button type="button" class="btn-small btn-deliver" onclick="updateStatus(\'' + orderId + '\', \'delivered\')">🚚 Deliver</button>';
+    }
+    
+    buttonsContainer.innerHTML = html;
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    if (type === 'success') {
+        notification.style.background = '#d4edda';
+        notification.style.color = '#155724';
+        notification.style.border = '1px solid #c3e6cb';
+    } else {
+        notification.style.background = '#f8d7da';
+        notification.style.color = '#721c24';
+        notification.style.border = '1px solid #f5c6cb';
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+<script>
+function ajaxDeleteProduct(productId) {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
+    fetch(`/delete_product/${productId}`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data && data.success) {
+            const row = document.getElementById(`all-product-${productId}`);
+            if (row) row.remove();
+            showNotification('✅ Product deleted', 'success');
+        } else {
+            showNotification('❌ Could not delete product', 'error');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showNotification('❌ Error deleting product', 'error');
+    });
+}
+</script>
+
+</body>
+</html>

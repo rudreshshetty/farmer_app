@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📦 Order Confirmed</h2>
+</div>
+
+<div class="container">
+    <div class="card success-card">
+        <h1>✅ Order Successfully Placed!</h1>
+        
+        <div class="order-details">
+            <p><strong>Order ID:</strong> #{{ order.id }}</p>
+            <p><strong>Status:</strong> <span class="status-pending">{{ order.status }}</span></p>
+            <p><strong>Total Price:</strong> ₹{{ "%.2f"|format(order.total_price) }}</p>
+            <p><strong>Payment Method:</strong> 
+                {% if order.payment_method == 'upi' %}
+                    📱 UPI Payment
+                    {% if order.status == 'confirmed' %}
+                        <span class="status-confirmed">✅ CONFIRMED</span>
+                    {% endif %}
+                {% elif order.payment_method == 'card' %}
+                    💳 Credit/Debit Card
+                {% elif order.payment_method == 'cod' %}
+                    💵 Cash on Delivery
+                {% else %}
+                    {{ order.payment_method }}
+                {% endif %}
+            </p>
+            <p><strong>Delivery Time:</strong> {{ order.delivery_date }}</p>
+            <p><strong>Order Date:</strong> {{ order.created_at }}</p>
+        </div>
+        
+        <h3>📦 Items in Your Order</h3>
+        <div class="items-list">
+            {% for item in items %}
+                <div class="item">
+                    <p><strong>{{ item.product_name }}</strong></p>
+                    <p>{{ item.quantity }} kg @ ₹{{ item.price }}/kg = <strong>₹{{ "%.2f"|format(item.quantity * item.price) }}</strong></p>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="button-group">
+            <a href="/" class="btn">🏠 Continue Shopping</a>
+            <a href="/my_orders" class="btn">📦 View All Orders</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

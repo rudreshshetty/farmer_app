@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fresh Vegetables - Farmer App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="navbar">
+    <h1>🥬 Fresh Vegetables</h1>
+    <form class="nav-search" method="GET" action="/">
+        <input type="text" name="q" placeholder="Search vegetables..." value="{{ request.args.get('q', '') }}">
+        <button type="submit">Search</button>
+    </form>
+    <div class="nav-links">
+        {% if session.user_id %}
+            <span class="welcome">👋 Welcome, {{ session.name }}</span>
+            <a href="/dashboard" class="btn-small">Dashboard</a>
+            {% if session.role == "customer" %}
+                <a href="/cart" class="btn-small">🛒 Cart</a>
+            {% endif %}
+            <a href="/logout" class="btn-small logout">Logout</a>
+        {% else %}
+            <a href="/register" class="btn-small">Register</a>
+            <a href="/login" class="btn-small">Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <h2 style="text-align: center; color: #27ae60; margin: 30px 0;">🌾 Fresh From Local Farmers 🚚</h2>
+    {% if request.args.get('q') %}
+        <p style="text-align: center; font-size: 18px; margin: 10px 0; color: #333;">Search results for "{{ request.args.get('q') }}"</p>
+    {% endif %}
+    
+    {% if not products %}
+        <p style="text-align: center; font-size: 18px; margin: 50px 0;">No products available yet. Check back soon!</p>
+    {% else %}
+        <div class="products">
+            {% for product in products %}
+                <div class="card">
+                    <a class="product-link" href="/product/{{ product._id }}">
+                        <img src="{{ product.image or 'https://via.placeholder.com/400x250.png?text=Vegetable' }}" alt="{{ product.name }}">
+                        <h2>{{ product.name }}</h2>
+                    </a>
+                    <p class="category" style="color: #27ae60; font-size: 12px; margin: 5px 0;">📂 {{ product.category or 'Vegetables' }}</p>
+                    <p class="price">₹{{ "%.2f"|format(product.price) }}/{{ product.unit or 'kg' }}</p>
+                    <p class="stock">📦 Stock: {{ "%.1f"|format(product.quantity) }} {{ product.unit or 'kg' }}</p>
+                    {% if product.description %}
+                        <p class="description">{{ product.description }}</p>
+                    {% endif %}
+                    <p class="farmer">👨‍🌾 Farmer: {{ product.farmer_name or 'Local Farmer' }}</p>
+                    <a href="/product/{{ product._id }}" class="btn-small" style="margin-bottom: 10px;">View Details</a>
+                    {% if session.user_id and session.role == "customer" %}
+                        <form method="POST" action="/add_to_cart/{{ product._id }}" class="add-cart-form">
+                            <input type="number" name="quantity" value="1" min="0.5" step="0.5" max="{{ product.quantity }}" required>
+                            <button type="submit" class="btn-cart">🛒 Add to Cart</button>
+                        </form>
+                    {% elif not session.user_id %}
+                        <p class="login-prompt"><a href="/login">Login to order</a></p>
+                    {% else %}
+                        <p class="info">👨‍🌾 Your Product</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

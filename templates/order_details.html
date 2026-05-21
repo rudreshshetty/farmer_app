@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - Farmer App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📦 Order Details</h2>
+    <a href="/dashboard" class="btn-small">← Back to Dashboard</a>
+</div>
+
+<div class="container">
+    <div class="order-details-card">
+        <div class="order-header">
+            <h1>Order #{{ order._id }}</h1>
+            <span class="status-badge status-{{ order.status }}">{{ order.status|upper }}</span>
+        </div>
+
+        <div class="details-grid">
+            <div class="detail-section">
+                <h3>📋 Order Info</h3>
+                <p><strong>Order Date:</strong> {{ order.created_at[0:10] if order.created_at else 'N/A' }}</p>
+                <p><strong>Total Amount:</strong> ₹{{ "%.2f"|format(order.total_price) }}</p>
+                <p><strong>Payment Method:</strong> {{ order.payment_method or 'N/A' }}</p>
+                <p><strong>Delivery Date:</strong> {{ order.delivery_date or 'N/A' }}</p>
+            </div>
+
+            <div class="detail-section">
+                <h3>👤 Customer Info</h3>
+                <p><strong>Name:</strong> {{ order.customer_name }}</p>
+                <p><strong>Email:</strong> {{ order.customer_email }}</p>
+                <p><strong>Phone:</strong> {{ order.customer_phone }}</p>
+                <p><strong>Address:</strong> {{ order.customer_address }}</p>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3>📦 Order Items</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Price/Unit</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>{{ item.product_name }}</td>
+                                <td>{{ "%.1f"|format(item.quantity) }} kg</td>
+                                <td>₹{{ "%.2f"|format(item.price) }}</td>
+                                <td>₹{{ "%.2f"|format(item.quantity * item.price) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="order-total">
+                <h2>Total: ₹{{ "%.2f"|format(order.total_price) }}</h2>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/dashboard" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

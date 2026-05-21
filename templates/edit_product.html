@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - Farmer App</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .product-form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #27ae60;
+        }
+        .form-section h3 {
+            margin-top: 0;
+            color: #27ae60;
+            font-size: 16px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 0 5px rgba(39, 174, 96, 0.2);
+        }
+        .helper-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .required-legend {
+            background: #e8f5e9;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #27ae60;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+        .required-legend strong {
+            color: #d32f2f;
+            font-size: 16px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>✏️ Edit Product</h2>
+</div>
+
+<div class="product-form">
+    <div class="required-legend">
+        <strong>*</strong> Indicates mandatory fields that must be filled
+    </div>
+    
+    <!-- Product Ownership Info -->
+    <div class="form-section" style="background: #f0f8ff; border-left-color: #2196F3;">
+        <h3 style="color: #2196F3; margin-top: 0;">👨‍🌾 Product Owner Information</h3>
+        <p><strong>Owner Farmer:</strong> {{ product.farmer_name }}</p>
+        <p><strong>Product ID:</strong> {{ product._id }}</p>
+        {% if product.is_owner %}
+            <p style="color: #27ae60;"><strong>✅ Status:</strong> You are the owner - Full edit access</p>
+        {% else %}
+            <p style="color: #f39c12;"><strong>ℹ️ Status:</strong> This product belongs to another farmer, but you can still update it here.</p>
+        {% endif %}
+    </div>
+    
+    <form method="POST" action="/edit_product/{{ product._id }}" class="form">
+        <!-- Product Basic Info -->
+        <div class="form-section">
+            <h3>📝 Product Information</h3>
+            
+            <div class="form-group">
+                <label for="name">Product Name *</label>
+                <input type="text" id="name" name="name" value="{{ product.name }}" required>
+                <div class="helper-text">Enter the name of your vegetable, fruit, grain, or crop</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="category">Category *</label>
+                <select id="category" name="category" required>
+                    <option value="Vegetables" {% if product.category == 'Vegetables' %}selected{% endif %}>🥕 Vegetables</option>
+                    <option value="Fruits" {% if product.category == 'Fruits' %}selected{% endif %}>🍎 Fruits</option>
+                    <option value="Grains" {% if product.category == 'Grains' %}selected{% endif %}>🌾 Grains</option>
+                    <option value="Leafy Greens" {% if product.category == 'Leafy Greens' %}selected{% endif %}>🥬 Leafy Greens</option>
+                    <option value="Others" {% if product.category == 'Others' %}selected{% endif %}>📦 Others</option>
+                </select>
+                <div class="helper-text">Select the category that best matches your product</div>
+            </div>
+        </div>
+        
+        <!-- Pricing & Stock -->
+        <div class="form-section">
+            <h3>💰 Pricing & Stock</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="price">Price per Unit *</label>
+                    <input type="number" id="price" name="price" value="{{ product.price }}" step="0.01" min="0" required>
+                    <div class="helper-text">Price in ₹</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="unit">Unit *</label>
+                    <input type="text" id="unit" name="unit" value="{{ product.unit or 'kg' }}" required>
+                    <div class="helper-text">e.g., kg, g, bundle, sack, piece</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Stock Available *</label>
+                <input type="number" id="quantity" name="quantity" value="{{ product.quantity }}" min="0" step="0.5" required>
+                <div class="helper-text">Total quantity available</div>
+            </div>
+        </div>
+        
+        <!-- Product Details -->
+        <div class="form-section">
+            <h3>📸 Product Details</h3>
+            
+            <div class="form-group">
+                <label for="image">Product Image URL (Optional)</label>
+                <input type="text" id="image" name="image" value="{{ product.image or '' }}">
+                <div class="helper-text">Upload a clear photo of your vegetable</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description (Optional)</label>
+                <textarea id="description" name="description" rows="4">{{ product.description or '' }}</textarea>
+                <div class="helper-text">Provide information that helps customers</div>
+            </div>
+        </div>
+        
+        <!-- Submit Buttons -->
+        <div class="button-group">
+            <button type="submit">💾 Update Product</button>
+            <a href="/dashboard" class="btn-cancel">❌ Cancel</a>
+        </div>
+    </form>
+
+</body>
+</html>

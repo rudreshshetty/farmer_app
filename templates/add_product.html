@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - Farmer App</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .product-form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #27ae60;
+        }
+        .form-section h3 {
+            margin-top: 0;
+            color: #27ae60;
+            font-size: 16px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 0 5px rgba(39, 174, 96, 0.2);
+        }
+        .helper-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .required-legend {
+            background: #e8f5e9;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #27ae60;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+        .required-legend strong {
+            color: #d32f2f;
+            font-size: 16px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>🥬 Add Your Product</h2>
+</div>
+
+<div class="product-form">
+    <div class="required-legend">
+        <strong>*</strong> Indicates mandatory fields that must be filled
+    </div>
+    
+    <form method="POST" class="form">
+        <!-- Product Basic Info -->
+        <div class="form-section">
+            <h3>📝 Product Information</h3>
+            
+            <div class="form-group">
+                <label for="name">Product Name *</label>
+                <input type="text" id="name" name="name" placeholder="e.g., Tomatoes, Potatoes, Carrots" required>
+                <div class="helper-text">Enter the name of your vegetable, fruit, grain, or crop</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="category">Category *</label>
+                <select id="category" name="category" required>
+                    <option value="">-- Select Category --</option>
+                    <option value="Vegetables">🥕 Vegetables</option>
+                    <option value="Fruits">🍎 Fruits</option>
+                    <option value="Grains">🌾 Grains</option>
+                    <option value="Leafy Greens">🥬 Leafy Greens</option>
+                    <option value="Others">📦 Others</option>
+                </select>
+                <div class="helper-text">Select the category that best matches your product</div>
+            </div>
+        </div>
+        
+        <!-- Pricing & Stock -->
+        <div class="form-section">
+            <h3>💰 Pricing & Stock</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="price">Price per Unit *</label>
+                    <input type="number" id="price" name="price" placeholder="e.g., 30" step="0.01" min="0" required>
+                    <div class="helper-text">Price in ₹ (e.g., ₹30 per kg)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="unit">Unit *</label>
+                    <input type="text" id="unit" name="unit" placeholder="e.g., kg, bundle, sack" value="kg" required>
+                    <div class="helper-text">e.g., kg, g, bundle, sack, piece</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Stock Available *</label>
+                <input type="number" id="quantity" name="quantity" placeholder="e.g., 50" min="0" step="0.5" required>
+                <div class="helper-text">Total quantity available in the unit you selected above</div>
+            </div>
+        </div>
+        
+        <!-- Product Details -->
+        <div class="form-section">
+            <h3>📸 Product Details</h3>
+            
+            <div class="form-group">
+                <label for="image">Product Image URL (Optional)</label>
+                <input type="text" id="image" name="image" placeholder="e.g., https://example.com/image.jpg">
+                <div class="helper-text">Upload a clear photo of your vegetable (JPG / PNG)</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description (Optional)</label>
+                <textarea id="description" name="description" rows="4" placeholder="Add short details like: freshness, organic info, harvest date, quality notes, special features"></textarea>
+                <div class="helper-text">Provide information that helps customers make a decision</div>
+            </div>
+        </div>
+        
+        <!-- Submit Buttons -->
+        <div class="button-group">
+            <button type="submit">✅ Add Product</button>
+            <a href="/dashboard" class="btn-cancel">❌ Cancel</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
